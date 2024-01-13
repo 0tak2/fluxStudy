@@ -1,0 +1,18 @@
+# https://hub.docker.com/_/mongo
+# https://poiemaweb.com/docker-mongodb
+# https://devfunny.tistory.com/920
+
+version: '3.1'
+
+services:
+  chat-mongo:
+    container_name: chat-mongo
+    image: mongo
+    restart: always
+    ports:
+      - 27018:27017
+    environment: # mongosh localhost -u root -p root
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - ./data:/data/db
