@@ -1,0 +1,13 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://limo:980408@localhost:27018/chat?authSource=admin&retryWrites=true&w=majority
+logging:
+  level:
+    root: debug
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              ReactiveMongoTemplate: info
