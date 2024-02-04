@@ -11,8 +11,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
-import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
+import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 
 @Configuration(proxyBeanMethods = false)
 public class ChatRouter {
@@ -20,6 +19,7 @@ public class ChatRouter {
     public RouterFunction<ServerResponse> chatRoute(ChatHandler chatHandler) {
         return RouterFunctions
                 .route(POST("/chat").and(accept(MediaType.APPLICATION_JSON)), chatHandler::newChat)
+                .andRoute(GET("/sse").and(accept(MediaType.TEXT_EVENT_STREAM)), chatHandler::sseConnect)
                 .filter(handleError());
     }
 
