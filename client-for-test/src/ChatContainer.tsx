@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Chat from './Chat';
 import ChatInput from './ChatInput';
-import { ChatDto } from './common';
+import { CONSTANTS, ChatDto } from './common';
+import { UserContext } from './App';
 
 function ChatContainer() {
+    const userContext = useContext(UserContext);
+
     const [chatList, setChatList] = useState<ChatDto[]>([
         {
-            message: '채팅에 오신 것을 환영합니다.',
+            message: userContext.nickname + '님, 채팅에 오신 것을 환영합니다.',
             sender: '관리자',
             receiver: undefined,
             createdAt: new Date().toISOString(),
@@ -16,7 +19,7 @@ function ChatContainer() {
     const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
     useEffect(() => {
-        const source = new EventSource('http://localhost:8080/sse');
+        const source = new EventSource(CONSTANTS.baseUrl + '/sse');
 
         source.onopen = () => {
             // 연결 시 할 일
@@ -45,12 +48,31 @@ function ChatContainer() {
         };
 
         setEventSource(source);
+        console.log('EventSource set: ');
+        console.log(eventSource);
 
         return () => {
             // 컴포넌트가 언마운트될 때 EventSource 종료
             source.close();
         };
     }, []);
+
+    const handleSend = async (content: string) => {
+        const response = await fetch(CONSTANTS.baseUrl + '/chat', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                message: content,
+                sender: userContext.nickname,
+            }),
+        });
+
+        if (response.status !== 200) {
+            console.error('[Chat] Fail post new chat');
+        }
+    }
 
     return (
         <div style={{ width: 600 }}>
@@ -68,7 +90,7 @@ function ChatContainer() {
                 }
             </div>
             <div>
-                <ChatInput />
+                <ChatInput onSend={handleSend} />
             </div>
         </div>
     );
