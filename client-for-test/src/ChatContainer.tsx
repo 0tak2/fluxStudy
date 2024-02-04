@@ -7,18 +7,33 @@ import { UserContext } from './App';
 function ChatContainer() {
     const userContext = useContext(UserContext);
 
-    const [chatList, setChatList] = useState<ChatDto[]>([
-        {
-            message: userContext.nickname + '님, 채팅에 오신 것을 환영합니다.',
-            sender: '관리자',
-            receiver: undefined,
-            createdAt: new Date().toISOString(),
-        },
-    ]);
+    const [chatList, setChatList] = useState<ChatDto[]>([]);
 
     const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
-    useEffect(() => {
+    const getPreData = async () => {
+        const current = new Date();
+        const before = new Date();
+        before.setHours(current.getHours() - 1);
+
+        const response = await fetch(`${CONSTANTS.baseUrl}/chat?start=${before.toISOString()}&end=${current.toISOString()}`);
+        const chatListBefore = (await response.json()).data;
+        setChatList([
+            ...chatListBefore,
+            {
+                message: userContext.nickname + '님, 채팅에 오신 것을 환영합니다.',
+                sender: '관리자',
+                receiver: undefined,
+                createdAt: new Date().toISOString(),
+            },
+        ]);
+
+        if (response.status !== 200) {
+            console.error('[Chat] Fail to fetch preivious chat data');
+        }
+    }
+
+    const initSse = () => {
         const source = new EventSource(CONSTANTS.baseUrl + '/sse');
 
         source.onopen = () => {
@@ -50,10 +65,21 @@ function ChatContainer() {
         setEventSource(source);
         console.log('EventSource set: ');
         console.log(eventSource);
+    }
+
+    useEffect(() => {
+        const initJob = async () => {
+            await getPreData();
+            initSse();
+        }
+
+        initJob();
 
         return () => {
             // 컴포넌트가 언마운트될 때 EventSource 종료
-            source.close();
+            if (eventSource) {
+                eventSource.close();
+            }
         };
     }, []);
 
