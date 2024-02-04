@@ -12,22 +12,30 @@ import lombok.NoArgsConstructor;
 @Builder
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class BasicResponse {
+public class BasicResponse<T> {
     private Boolean success;
     private Integer code;
     private String message;
+    private T data;
 
-    public static BasicResponse of(boolean isSuccess) {
-        return BasicResponse.builder()
+    public static BasicResponse<Object> of(boolean isSuccess) {
+        return BasicResponse.<Object>builder()
                 .success(isSuccess)
                 .build();
     }
 
-    public static BasicResponse of(DomainException ex) {
-        return BasicResponse.builder()
+    public static BasicResponse<Object> of(DomainException ex) {
+        return BasicResponse.<Object>builder()
                 .success(false)
                 .code(ex.getErrorDetail().getCode())
                 .message(ex.getErrorDetail().getMessage())
+                .build();
+    }
+
+    public static <T> BasicResponse<T> of(boolean isSuccess, T data) {
+        return BasicResponse.<T>builder()
+                .success(isSuccess)
+                .data(data)
                 .build();
     }
 }

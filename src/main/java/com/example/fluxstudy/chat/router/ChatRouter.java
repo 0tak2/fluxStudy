@@ -20,6 +20,7 @@ public class ChatRouter {
         return RouterFunctions
                 .route(POST("/chat").and(accept(MediaType.APPLICATION_JSON)), chatHandler::newChat)
                 .andRoute(GET("/sse").and(accept(MediaType.TEXT_EVENT_STREAM)), chatHandler::sseConnect)
+                .andRoute(GET("/chat").and(accept(MediaType.APPLICATION_JSON)), chatHandler::getChatByTime)
                 .filter(handleError());
     }
 

@@ -2,6 +2,8 @@ package com.example.fluxstudy.chat.router;
 
 import com.example.fluxstudy.chat.dto.BasicResponse;
 import com.example.fluxstudy.chat.dto.ChatDto;
+import com.example.fluxstudy.chat.exception.DomainException;
+import com.example.fluxstudy.chat.exception.ErrorDetail;
 import com.example.fluxstudy.chat.service.ChatService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
@@ -13,6 +15,9 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Component
 @AllArgsConstructor
@@ -30,9 +35,21 @@ public class ChatHandler {
                         .build())
                 .doOnNext(sse -> eventProcessor.onNext(sse))
                 .then(
-                        ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM)
+                        ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
                                 .body(BodyInserters.fromValue(BasicResponse.of(true)))
                 );
+    }
+
+    public Mono<ServerResponse> getChatByTime(ServerRequest request) {
+        Flux<ChatDto> result = chatService.getChatByDate(LocalDateTime.parse(
+                request.queryParam("start").orElseThrow(() -> new DomainException(ErrorDetail.BAD_REQUEST)), DateTimeFormatter.ISO_DATE_TIME
+        ), LocalDateTime.parse(
+                request.queryParam("end").orElseThrow(() -> new DomainException(ErrorDetail.BAD_REQUEST)), DateTimeFormatter.ISO_DATE_TIME
+        ));
+
+        return result.collectList()
+                .flatMap(data -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+                        .body(BodyInserters.fromValue(BasicResponse.of(true, data))));
     }
 
     public Mono<ServerResponse> sseConnect(ServerRequest request) {
