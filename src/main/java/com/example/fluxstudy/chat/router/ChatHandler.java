@@ -25,7 +25,7 @@ public class ChatHandler {
                 .flatMap(chatService::addChat)
                 .map(chat -> ServerSentEvent.<ChatDto>builder()
                         .id(chat.getId())
-                        .event("new-message")
+                        .event("new-chat")
                         .data(chat)
                         .build())
                 .doOnNext(sse -> eventProcessor.onNext(sse))

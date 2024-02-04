@@ -27,6 +27,7 @@ public class Chat {
         return Chat.builder()
                 .id(dto.getId())
                 .message(dto.getMessage())
+                .sender(dto.getSender())
                 .receiver(dto.getReceiver())
                 .createdAt(dto.getCreatedAt())
                 .build();
