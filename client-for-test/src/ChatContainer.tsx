@@ -11,6 +11,8 @@ function ChatContainer() {
 
     const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
+    const [isSseActive, setIsSseActive] = useState(false);
+
     const getPreData = async () => {
         const current = new Date();
         const before = new Date();
@@ -24,7 +26,7 @@ function ChatContainer() {
                 message: userContext.nickname + '님, 채팅에 오신 것을 환영합니다.',
                 sender: '관리자',
                 receiver: undefined,
-                createdAt: new Date().toISOString(),
+                createdAt: undefined,
             },
         ]);
 
@@ -57,20 +59,27 @@ function ChatContainer() {
 
             console.error(`[SSE] 에러 발생${error}`);
 
-            // if (error.target.readyState === EventSource.CLOSED) {
-            //     // 종료 시 할 일
-            // }
+            setIsSseActive(false);
         };
 
         setEventSource(source);
+        setIsSseActive(true);
+
         console.log('EventSource set: ');
         console.log(eventSource);
     }
 
     useEffect(() => {
+        if (eventSource) {
+            eventSource.close();
+        }
+
         const initJob = async () => {
             await getPreData();
-            initSse();
+
+            if (!isSseActive) {
+                initSse();
+            }
         }
 
         initJob();
